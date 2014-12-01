@@ -1,0 +1,17 @@
+[Unit]
+Description=lapis web service
+After=etcd.service
+Requires=lapis-discovery@%i.service
+
+
+[Service]
+TimeoutStartSec=0
+EnvironmentFile=/etc/environment
+ExecStartPre=-/usr/bin/docker kill lapis%i
+ExecStartPre=-/usr/bin/docker rm lapis%i
+ExecStart=/usr/bin/docker run --name lapis%i -p ${COREOS_PUBLIC_IPV4}:%i:8080 -v /home/core/data/%i:/server abaez/docker-lapis
+ExecStop=/usr/bin/docker stop lapis%i
+
+[X-Fleet]
+X-Conflicts=lapis@*.service
+

@@ -1,0 +1,25 @@
+[Unit]
+Description=Announce lapis@%i service
+
+Requires=lapis@%i.service
+
+After=lapis@%i.service
+BindsTo=lapis@%i.service
+
+
+[Service]
+EnvironmentFile=/etc/environment
+ExecStart=/bin/sh -c "while true; do \
+    curl -f ${COREOS_PRIVATE_IPV4}:%i; \
+    if [ $? -eq 0 ]; then \
+      etcdctl set /announce/services/lapis/${COREOS_PRIVATE_IPV4} '${COREOS_PRIVATE_IPV4}:%i' --ttl 30; \
+    else \
+      etcdctl rm /announce/services/lapis/${COREOS_PRIVATE_IPV4}; \
+    fi; \
+    sleep 20; \
+  done"
+
+ExecStop=/usr/bin/etcdctl rm /announce/services/lapis/${COREOS_PRIVATE_IPV4}
+
+[X-Fleet]
+X-ConditionMachineOf=lapis@%i.service
